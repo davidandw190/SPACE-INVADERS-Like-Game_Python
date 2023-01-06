@@ -105,15 +105,7 @@ class Game:
         self.extra = pygame.sprite.GroupSingle()
         self.extra_spawn_time = randint(400, 800)
 
-
-
-
-
-
-
-
-
-    def create_obstacle(self, offset_x, x_start, y_start ):
+    def create_obstacle(self, offset_x, x_start, y_start):
         for row_index, row in enumerate(self.shape):
             for col_index, col in enumerate(row):
                 if col == "x":
@@ -167,12 +159,45 @@ class Game:
         if self.extra_spawn_time <= 0:
             self.extra.add(Extra(choice(["right", "left"]), WIDTH))
 
+    def collision_check(self):
 
+        # Player lasers
+        if self.player.sprite.lasers:
+            for laser in self.player.sprite.lasers:
 
+                # Obstacle collisions
+                if pygame.sprite.spritecollide(laser, self.blocks, True):
+                    laser.kill()
 
+                # Alien collisions
+                if pygame.sprite.spritecollide(laser, self.aliens, True):
+                    laser.kill()
 
+                # Extra collisions
+                if pygame.sprite.spritecollide(laser, self.extra, True):
+                    laser.kill()
 
+        # Alien lasers
+        if self.alien_lasers:
+            for alien_laser in self.alien_lasers:
 
+                # Obstacle collisions
+                if pygame.sprite.spritecollide(alien_laser, self.blocks, True):
+                    alien_laser.kill()
+
+                # Player collisions
+                if pygame.sprite.spritecollide(alien_laser, self.blocks, False):
+                    alien_laser.kill()
+                    print("dead")
+
+        # Aliens
+        if self.aliens:
+            for alien in self.aliens:
+                pygame.sprite.spritecollide(alien, self.blocks, True)
+
+                if pygame.sprite.spritecollide(alien, self.player, False):
+                    pygame.quit()
+                    sys.exit()
 
 
     def run(self):
@@ -183,11 +208,12 @@ class Game:
         self.alien_position_check()
         self.alien_lasers.update()
         self.extra_alien_timer()
+        self.extra.update()
+        self.collision_check()
 
         self.player.sprite.lasers.draw(WIN)
         self.player.draw(WIN)
         self.blocks.draw(WIN)
-
 
         self.aliens.draw(WIN)
         self.alien_lasers.draw(WIN)
@@ -206,7 +232,6 @@ if __name__ == "__main__":
 
     ALIENLASER = pygame.USEREVENT + 1
     pygame.time.set_timer(ALIENLASER, 800)
-
 
     while True:
         for event in pygame.event.get():
