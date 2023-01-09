@@ -16,4 +16,5 @@ shape = [
     'xxxxxxxxxxx',
     'xxxxxxxxxxx',
     'xxx     xxx',
-    'xx       xx']
+    'xx       xx'
+]
