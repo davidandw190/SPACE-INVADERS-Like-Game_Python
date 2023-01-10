@@ -91,6 +91,8 @@ class Game:
         self.lives = 3
         self.live_surface = pygame.image.load("graphics/player.png").convert_alpha()
         self.live_x_start_pos = WIDTH - (self.live_surface.get_size()[0] * 2 + 20)
+        self.score = 0
+        self.font = pygame.font.Font("font/Pixeled.ttf", 20)
 
 
 
@@ -110,7 +112,7 @@ class Game:
 
         # Extra setup
         self.extra = pygame.sprite.GroupSingle()
-        self.extra_spawn_time = randint(400, 800)
+        self.extra_spawn_time = randint(300, 600)
 
     def create_obstacle(self, offset_x, x_start, y_start):
         for row_index, row in enumerate(self.shape):
@@ -158,7 +160,7 @@ class Game:
     def alien_shoot(self):
         if self.aliens.sprites():
             random_alien = choice(self.aliens.sprites())
-            laser_sprite = Laser(random_alien.rect.center, -6, HEIGHT)
+            laser_sprite = Laser(random_alien.rect.center, -7, HEIGHT)
             self.alien_lasers.add(laser_sprite)
 
     def extra_alien_timer(self):
@@ -177,12 +179,17 @@ class Game:
                     laser.kill()
 
                 # Alien collisions
-                if pygame.sprite.spritecollide(laser, self.aliens, True):
+                aliens_hit = pygame.sprite.spritecollide(laser, self.aliens, True)
+                if aliens_hit:
+                    for alien in aliens_hit:
+                        self.score += alien.value
                     laser.kill()
 
                 # Extra collisions
                 if pygame.sprite.spritecollide(laser, self.extra, True):
+                    self.score += 500
                     laser.kill()
+
 
         # Alien lasers
         if self.alien_lasers:
@@ -199,7 +206,7 @@ class Game:
                         pygame.quit()
                         sys.exit()
 
-                # Player collisions
+
 
 
         # Aliens
@@ -216,27 +223,38 @@ class Game:
             x = self.live_x_start_pos + live * (self.live_surface.get_size()[0] + 20)
             WIN.blit(self.live_surface, (x, 8))
 
+    def display_score(self):
+        score_surface = self.font.render(f"SCORE: {self.score}", False, "white")
+        score_rect = score_surface.get_rect(topleft=(10, -10))
+        WIN.blit(score_surface, score_rect)
+
+
 
 
     def run(self):
+        # Display background on window
         WIN.blit(BG, (0, 0))
 
+        # Basic updates
         self.player.update()
+        self.alien_lasers.update()
+        self.extra.update()
+
+        # Additional Updates
         self.aliens.update(self.alien_direction)
         self.alien_position_check()
-        self.alien_lasers.update()
         self.extra_alien_timer()
-        self.extra.update()
         self.collision_check()
-        self.display_lives()
 
+        # Dysplay onto the window
         self.player.sprite.lasers.draw(WIN)
         self.player.draw(WIN)
         self.blocks.draw(WIN)
-
         self.aliens.draw(WIN)
         self.alien_lasers.draw(WIN)
         self.extra.draw(WIN)
+        self.display_lives()
+        self.display_score()
 
 
 if __name__ == "__main__":
