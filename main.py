@@ -114,6 +114,9 @@ class Game:
         self.extra = pygame.sprite.GroupSingle()
         self.extra_spawn_time = randint(300, 600)
 
+        # Audio
+
+
     def create_obstacle(self, offset_x, x_start, y_start):
         for row_index, row in enumerate(self.shape):
             for col_index, col in enumerate(row):
@@ -256,16 +259,38 @@ class Game:
         self.display_lives()
         self.display_score()
 
+class CRT:
+    def __init__(self):
+        self.tv = pygame.image.load("graphics/tv.png").convert_alpha()
+        self.tv = pygame.transform.scale(self.tv,(WIDTH, HEIGHT))
+
+    def create_crt_lines(self):
+        crt_line_height = 3
+        crt_line_amount = int(HEIGHT / crt_line_height)
+        for line in range(crt_line_amount):
+            y_pos = line * crt_line_height
+            pygame.draw.line(self.tv, "black", (0, y_pos), (WIDTH, y_pos), 1)
+
+    def draw(self):
+        self.tv.set_alpha(randint(75,90))
+        self.create_crt_lines()
+        WIN.blit(self.tv, (0, 0))
+
+
+
+
 
 if __name__ == "__main__":
 
     pygame.init()
     WIDTH, HEIGHT = 750, 750
     WIN = pygame.display.set_mode((WIDTH, HEIGHT))
+    BG = pygame.transform.scale(pygame.image.load(os.path.join("assets", "background-black.png")), (WIDTH, HEIGHT))
     CLOCK = pygame.time.Clock()
     GAME = Game()
+    CRT = CRT()
     FPS = 60
-    BG = pygame.transform.scale(pygame.image.load(os.path.join("assets", "background-black.png")), (WIDTH, HEIGHT))
+
 
     ALIENLASER = pygame.USEREVENT + 1
     pygame.time.set_timer(ALIENLASER, 800)
@@ -281,6 +306,7 @@ if __name__ == "__main__":
 
         WIN.fill((30, 30, 30))
         GAME.run()
+        CRT.draw()
 
         pygame.display.flip()
         CLOCK.tick(FPS)
