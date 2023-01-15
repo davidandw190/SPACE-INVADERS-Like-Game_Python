@@ -8,83 +8,11 @@ from random import choice, randint
 from laser import Laser
 
 
-#
-# pygame.font.init()
-#
-# WIDTH, HEIGHT = 750, 750
-# WIN = pygame.display.set_mode((WIDTH, HEIGHT))
-# pygame.display.set_caption("Space Shooter Game")
-#
-# # Loading images
-# RED_SPACESHIP = pygame.image.load(os.path.join("assets", "pixel_ship_red_small.png"))
-# GREEN_SPACESHIP = pygame.image.load(os.path.join("assets", "pixel_ship_green_small.png"))
-# BLUE_SPACESHIP = pygame.image.load(os.path.join("assets", "pixel_ship_blue_small.png"))
-#
-# # Player ship
-# PLAYER_SPACESHIP = pygame.image.load(os.path.join("assets", "pixel_ship_yellow.png"))
-#
-# # Lasers
-#
-# RED_LASER = pygame.image.load(os.path.join("assets", "pixel_laser_red.png"))
-# GREEN_LASER = pygame.image.load(os.path.join("assets", "pixel_laser_green.png"))
-# BLUE_LASER = pygame.image.load(os.path.join("assets", "pixel_laser_blue.png"))
-# YELLOW_LASER = pygame.image.load(os.path.join("assets", "pixel_laser_yellow.png"))
-#
-# # Background
-# BG = pygame.transform.scale(pygame.image.load(os.path.join("assets", "background-black.png")), (WIDTH, HEIGHT))
-# class Ship:
-#     def __init__(self, x, y, health=100):
-#         self.x = x
-#         self.y = y
-#         # self.color = color
-#         self.health = health
-#         self.ship_img = None
-#         self.laser_img = None
-#         self.lasers = []
-#         self.cool_down_counter = 0
-#
-#     def draw(self, widow):
-#         pygame.draw.rect(WIN, (255, 0, 0), (self.x, self.y, 50, 50))
-#
-# def main():
-#     run = True
-#     FPS = 60
-#     lvl = 1
-#     lives = 5
-#     main_font = pygame.font.SysFont("8-Bit-Madnes", 40)
-#
-#     ship = Ship(350, 650)
-#
-#     clock = pygame.time.Clock()
-#
-#     def redraw_window():
-#         WIN.blit(BG, (0, 0))
-#         # draw text
-#         lives_label = main_font.render(f"LIVES: {lives}", 1, (255, 0, 0))
-#         lvl_label = main_font.render(f"LVL: {lvl}", 1, (255, 255, 255))
-#
-#         WIN.blit(lives_label, (10, 10))
-#         WIN.blit(lvl_label, (WIDTH - lvl_label.get_width() - 10, 10))
-#         ship.draw(WIN)
-#         pygame.display.update()
-#
-#     while run:
-#         clock.tick(FPS)
-#         redraw_window()
-#
-#         for event in pygame.event.get():
-#
-#             if event.type == pygame.QUIT:
-#                 run = False
-#
-#
-# main()
-
 class Game:
 
     def __init__(self):
         # Player setup
-        player_sprite = Player((WIDTH / 2, HEIGHT), WIDTH, 5)
+        player_sprite = Player((WIDTH / 2, HEIGHT), WIDTH)
         self.player = pygame.sprite.GroupSingle(player_sprite)
 
         # Health & Score setup
@@ -92,9 +20,7 @@ class Game:
         self.live_surface = pygame.image.load("graphics/player.png").convert_alpha()
         self.live_x_start_pos = WIDTH - (self.live_surface.get_size()[0] * 2 + 20)
         self.score = 0
-        self.font = pygame.font.Font("font/Pixeled.ttf", 20)
-
-
+        self.font = pygame.font.Font("font/Pixelated.ttf", 20)
 
         # Obstacle setup
         self.shape = obstacle.shape
@@ -115,7 +41,13 @@ class Game:
         self.extra_spawn_time = randint(300, 600)
 
         # Audio
-
+        music = pygame.mixer.Sound("audio/music.wav")
+        music.set_volume(0.2)
+        music.play(loops=-1)
+        self.laser_sound = pygame.mixer.Sound("audio/laser.wav")
+        self.laser_sound.set_volume(0.5)
+        self.explosion_sound = pygame.mixer.Sound("audio/explosion.wav")
+        self.explosion_sound.set_volume(0.3)
 
     def create_obstacle(self, offset_x, x_start, y_start):
         for row_index, row in enumerate(self.shape):
@@ -165,6 +97,7 @@ class Game:
             random_alien = choice(self.aliens.sprites())
             laser_sprite = Laser(random_alien.rect.center, -7, HEIGHT)
             self.alien_lasers.add(laser_sprite)
+            self.laser_sound.play()
 
     def extra_alien_timer(self):
         self.extra_spawn_time -= 1
@@ -187,12 +120,12 @@ class Game:
                     for alien in aliens_hit:
                         self.score += alien.value
                     laser.kill()
+                    self.explosion_sound.play()
 
                 # Extra collisions
                 if pygame.sprite.spritecollide(laser, self.extra, True):
                     self.score += 500
                     laser.kill()
-
 
         # Alien lasers
         if self.alien_lasers:
@@ -208,9 +141,6 @@ class Game:
                     if self.lives <= 0:
                         pygame.quit()
                         sys.exit()
-
-
-
 
         # Aliens
         if self.aliens:
@@ -231,8 +161,11 @@ class Game:
         score_rect = score_surface.get_rect(topleft=(10, -10))
         WIN.blit(score_surface, score_rect)
 
-
-
+    def display_victory_message(self):
+        if not self.aliens.sprites():
+            victory_surf = self.font.render("You won", False, "white")
+            victory_rect = victory_surf.get_rect(center=(WIDTH / 2, HEIGHT / 2))
+            WIN.blit(victory_surf, victory_rect)
 
     def run(self):
         # Display background on window
@@ -249,7 +182,7 @@ class Game:
         self.extra_alien_timer()
         self.collision_check()
 
-        # Dysplay onto the window
+        # Display onto the window
         self.player.sprite.lasers.draw(WIN)
         self.player.draw(WIN)
         self.blocks.draw(WIN)
@@ -258,11 +191,13 @@ class Game:
         self.extra.draw(WIN)
         self.display_lives()
         self.display_score()
+        self.display_victory_message()
+
 
 class CRT:
     def __init__(self):
         self.tv = pygame.image.load("graphics/tv.png").convert_alpha()
-        self.tv = pygame.transform.scale(self.tv,(WIDTH, HEIGHT))
+        self.tv = pygame.transform.scale(self.tv, (WIDTH, HEIGHT))
 
     def create_crt_lines(self):
         crt_line_height = 3
@@ -272,12 +207,9 @@ class CRT:
             pygame.draw.line(self.tv, "black", (0, y_pos), (WIDTH, y_pos), 1)
 
     def draw(self):
-        self.tv.set_alpha(randint(75,90))
+        self.tv.set_alpha(randint(75, 90))
         self.create_crt_lines()
         WIN.blit(self.tv, (0, 0))
-
-
-
 
 
 if __name__ == "__main__":
@@ -290,7 +222,6 @@ if __name__ == "__main__":
     GAME = Game()
     CRT = CRT()
     FPS = 60
-
 
     ALIENLASER = pygame.USEREVENT + 1
     pygame.time.set_timer(ALIENLASER, 800)
