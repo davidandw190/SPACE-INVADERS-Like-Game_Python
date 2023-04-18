@@ -2,6 +2,13 @@
 
 Revamped the classic Space-Invaders game in Python using PyGame library, utilizing OOP paradigm extensively. Features include soundtrack, scoring system, and destructible environments. Created to deepen understanding of OOP principles.
 
+
+<img src="./space-inv-preview1.png" width="500">
+
+
+<img src="./space-inv-preview2.png" width="500">
+
+
 ## Table of Contents
 
 * Introduction
