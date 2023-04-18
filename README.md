@@ -18,7 +18,7 @@ This is a revamped version of the classic Space-Invaders game developed in Pytho
 To install the game, you must have Python and PyGame installed on your system. Follow these steps to install the game:
 
 
-1. Clone the repository: `git clone https://github.com/<username>/space-invaders-game.git`
+1. Clone the repository: `git clone https://github.com/davidandw190/SPACE-INVADERS-Like-Game_Python.git`
 2. Navigate to the game directory
 3. Install PyGame: `pip install pygame`
 
